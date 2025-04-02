@@ -41,6 +41,9 @@ uniqueMSpecies.remove("-----")
 #print(HSpeciesDct)
 
 sns.scatterplot(x="BdFt", y= "Price (15/bf)", hue=heritageSpecies, data=dfsheet3)
+plt.xlabel("BdFt")
+plt.ylabel("Price")
+plt.title("Visual Depiction of Price per board foot per type of wood that is being saved by UVA Sawmilling")
 plt.show()
 
 try:
