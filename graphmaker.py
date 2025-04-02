@@ -1,18 +1,19 @@
 import pandas as pd
-import matplotlib as plt
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 dfMain = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Milling', converters={'Common Name': str})
 dfHeritage = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Heritage slabs index', converters={'Common Name': str})
 
 
-dfHeritageNames = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Sheet3', converters={'Common Name': str})
+dfsheet3 = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Sheet3', converters={'Common Name': str})
 
-
+bdft = dfsheet3['BdFt']
 milledSpecies = dfMain['Common Name']
-prices = dfHeritage['Price (15/bf)'] # Access data from a specific column
-#print(milledSpecies)
+prices = dfsheet3['Price (15/bf)'] # Access data from a specific column
+#print(type(prices[0]))
 
-heritageSpecies = dfHeritageNames['Common Name']
+heritageSpecies = dfsheet3['Common Name']
 #print(heritageSpecies)
 
 uniqueHSpecies = set()
@@ -31,14 +32,16 @@ for i in range(heritageSpecies.size):
     newTree = i
 
 
+
 for species in milledSpecies:
   uniqueMSpecies.add(species)
 uniqueMSpecies.remove("-----")
 #print(uniqueSpecies)
 #print(len(uniqueHSpecies))
-print(HSpeciesDct)
+#print(HSpeciesDct)
 
-plt.plot()
+sns.scatterplot(x="BdFt", y= "Price (15/bf)", hue=heritageSpecies, data=dfsheet3)
+plt.show()
 
 try:
   df = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx')
