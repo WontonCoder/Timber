@@ -1,0 +1,111 @@
+from flask import Flask, render_template, Response
+import matplotlib.pyplot as plt
+import io
+import base64
+import pandas as pd
+import math
+import numpy as np
+
+app = Flask(__name__)
+
+dfMain = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Milling', converters={'Common Name': str})
+dfHeritage = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Heritage slabs index', converters={'Common Name': str})
+dfWeights = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Log weight calculation', 
+                          converters={'Common Name': str, 'Mill date':str, 'weight': float})
+dfsheet3 = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Sheet3', converters={'Common Name': str})
+bdft = dfsheet3['BdFt']
+milledSpecies = dfMain['Common Name']
+prices = dfsheet3['Price (15/bf)']
+
+def plot_bdft_vs_price():
+    bdftDict = {} #keys are amount of bdft cumulative are price cumulative
+    bdftCol = dfsheet3["BdFt"] 
+    bdftCum = 0
+    priceCum = 0
+    for index, bdft in enumerate(bdftCol):
+        if not(math.isnan(bdft)):
+            bdftCum += float(bdft)
+        if not(math.isnan(dfsheet3['Price (15/bf)'][index])):
+            priceCum += int(dfsheet3["Price (15/bf)"][index])
+        bdftDict[bdftCum] = priceCum
+    fig, ax = plt.subplots()
+    ax.plot(list(bdftDict.keys()), list(bdftDict.values()))
+    ax.set_xlabel("BdFt")
+    ax.set_ylabel("Price")
+    ax.set_title("Amount of board feet and money that is being saved by UVA Sawmilling")
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close(fig)
+    buf.seek(0)
+    return base64.b64encode(buf.getvalue()).decode('utf-8')
+
+def plot_carbon_over_time():
+    dates = dfWeights['Mill date']
+    #print(dates)
+    dates = dates.fillna('2024-02-24 00:00:00')
+    print(dates, flush=True)
+    weights = dfWeights['Weight']
+    print(weights, flush=True)
+    dateDict= {}
+    startDate = 9 *30 + 4
+
+    def addDict(start, weight):
+        if sinceStart not in dateDict:
+            dateDict[start] = [weight]
+        else:
+            dateDict[start].append(weight)
+    for index, date in enumerate(dates):
+        year = int(date[0:4])
+        month = int(date[5:7])
+        day = int(date[8:10])
+        sumDate = (year-2020)*365 + month * 30 + day
+        sinceStart = sumDate - startDate
+        addDict(sinceStart, float(weights[index]))
+    
+
+    #print(dateDict, flush=True)
+    print(sinceStart)
+    
+    for key in dateDict:
+        dateDict[key] = sum(dateDict[key])/2
+        #print(dateDict)
+
+    for i in range(len(dateDict.keys())):
+        upToSum = 0
+        keysList = list(dateDict.keys())
+        upToSum = dateDict[keysList[i]] + dateDict[keysList[i-1]]
+        dateDict[keysList[i]] = upToSum
+
+    #print(dateDict, flush=True)
+
+    slope = 4.6 * 2204.623/365
+    x_values = np.array([0, 1300])
+    y_values = slope * x_values
+
+    fig, ax = plt.subplots()
+    ax.plot(dateDict.keys(), dateDict.values(), label='Carbon Contained in the Trees')
+    ax.set_xlabel("Days since Start of Data Collection")
+    ax.set_ylabel("Amount of Carbon (lbs)")
+    ax.set_title("Amount of Carbon contained in Trees vs Cars.")
+
+    ax.plot(x_values, y_values, label='Average Carbon Output of a Car over this period')
+    ax.legend()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close(fig)
+    buf.seek(0)
+    return base64.b64encode(buf.getvalue()).decode('utf-8')
+
+
+@app.route('/')
+def index():
+    # Example data for the graph
+    bdftDict = plot_bdft_vs_price()
+    carbonPlt = plot_carbon_over_time()
+    # Pass the image to the template
+    return render_template('index.html', imgdata1=bdftDict, imgdata2=carbonPlt)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+

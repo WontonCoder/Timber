@@ -1,7 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib
+
+import math
 import numpy as np
+
 
 dfMain = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Milling', converters={'Common Name': str})
 dfHeritage = pd.read_excel(r'C:\Users\wqj6ya\Downloads\Timber\FYE Sawmilling Data.xlsx', sheet_name='Heritage slabs index', converters={'Common Name': str})
@@ -41,10 +44,21 @@ uniqueMSpecies.remove("-----")
 #print(len(uniqueHSpecies))
 #print(HSpeciesDct)
 
-sns.scatterplot(x="BdFt", y= "Price (15/bf)", hue=heritageSpecies, data=dfsheet3)
+bdftDict = {} #keys are amount of bdft cumulative are price cumulative
+bdftCol = dfsheet3["BdFt"] 
+bdftCum = 0
+priceCum = 0
+for index, bdft in enumerate(bdftCol):
+  if not(math.isnan(bdft)):
+    bdftCum += float(bdft)
+  if not(math.isnan(dfsheet3['Price (15/bf)'][index])):
+    priceCum += int(dfsheet3["Price (15/bf)"][index])
+  bdftDict[bdftCum] = priceCum
+print(bdftDict)
+plt.plot(bdftDict.keys(), bdftDict.values())
 plt.xlabel("BdFt")
 plt.ylabel("Price")
-plt.title("Visual Depiction of Price per board foot per type of wood that is being saved by UVA Sawmilling")
+plt.title("Visual Depiction of amount of board feet and money that is being saved by UVA Sawmilling")
 plt.show()
 
 dates = dfWeights['Mill date']
@@ -80,21 +94,21 @@ for i in range(len(dateDict.keys())):
   upToSum = dateDict[keysList[i]] + dateDict[keysList[i-1]]
   dateDict[keysList[i]] = upToSum
 
-#print(dateDict)
+print(dateDict)
 
 slope = 4.6 * 2204.623/365
 x_values = np.array([0, 1300])
 y_values = slope * x_values
 
 
-plt.plot(dateDict.keys(), dateDict.values(), label='Trees')
+plt.plot(dateDict.keys(), dateDict.values(), label='Carbon Contained in the Trees')
 plt.xlabel("Days since Start of Data Collection")
-plt.ylabel("Amount of Carbon")
+plt.ylabel("Amount of Carbon (lbs)")
 plt.title("Amount of Carbon contained in Trees cut down on UVA campus vs Cars Yearly output.")
 
 
-plt.plot(x_values, y_values, label='Cars')
-
+plt.plot(x_values, y_values, label='Average Carbon Output of a Car over this period')
+plt.legend()
 plt.show()
 
 try:
