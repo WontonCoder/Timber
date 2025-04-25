@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Google Sheets Counter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 100px;
+      background: #f0f0f0;
+    }
+
+    #counter {
+      font-size: 40px;
+      color: #2c3e50;
+      margin-top: 20px;
+    }
+
+    .label {
+      font-size: 24px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="label">Number of logs milled by UVA sawmilling:</div>
+  <div id="counter">Loading...</div>
+
+  <script>
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmzv8NCQR-bIYIWFmFWzxY05ahz8N44iaaOGzmnONZ_kNOWsvQNHquZ5ZviUiEObNQ3U40rdSrxLYf/pub?gid=1768550224&single=true&output=csv";
+
+  async function updateCounter() {
+    try {
+      const response = await fetch(sheetUrl);
+      const text = await response.text();
+      const rows = text.trim().split("\n");
+      const secondRow = rows[3];  // Assuming value is in row 2
+      const firstCell = secondRow.split(",")[1]; // Assuming value is in column A
+      document.getElementById("counter").textContent = firstCell;
+    } catch (err) {
+      document.getElementById("counter").textContent = "Error";
+      console.error("Failed to fetch sheet:", err);
+    }
+  }
+
+  updateCounter();
+  setInterval(updateCounter, 5000);
+</script>
+
+
+
+<div id="map" style="width: 100%; height: 500px;"></div>
+
+<!-- Leaflet.js Library -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var map = L.map('map').setView([38.0336, -78.5080], 15); // UVA coordinates
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add a marker at UVA
+    var marker = L.marker([38.0336, -78.5080]).addTo(map)
+        .bindPopup("This is UVA")
+        .openPopup();
+    var marker = L.marker([38.03000,-78.50361]).addTo(map)
+        .bindPopup("This is Student Health")
+        .openPopup();
+
+});
+</script>
+
+<iframe class="embedly-embed" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQmzv8NCQR-bIYIWFmFWzxY05ahz8N44iaaOGzmnONZ_kNOWsvQNHquZ5ZviUiEObNQ3U40rdSrxLYf/pubchart?oid=1407099987&format=interactive" </iframe>
+
+</body>
+</html>
